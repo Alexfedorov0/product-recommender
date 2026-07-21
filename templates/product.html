@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ product.product_name }} &middot; Product Recommender{% endblock %}
+{% block content %}
+
+<a class="back-link" href="/">&larr; back to search</a>
+
+<section class="query-product">
+  <span class="eyebrow">query product</span>
+  <h1>{{ product.product_name }}</h1>
+  <span class="query-category">{{ product.category }}</span>
+  <p class="query-description">{{ product.description[:320] }}{% if product.description|length > 320 %}&hellip;{% endif %}</p>
+</section>
+
+<section>
+  <h2 class="section-title">recommended &middot; ranked by cosine similarity</h2>
+  <div class="rec-list">
+    {% for r in recommendations %}
+    <a class="rec-row" href="/product/{{ r.product_id }}">
+      <div class="rec-score">
+        <span class="rec-score-value">{{ "%.3f"|format(r.similarity) }}</span>
+        <span class="rec-bar"><span class="rec-bar-fill" style="width: {{ (r.similarity * 100)|round(0, 'floor') }}%"></span></span>
+      </div>
+      <div class="rec-info">
+        <span class="rec-category">{{ r.category }}</span>
+        <span class="rec-name">{{ r.product_name }}</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}

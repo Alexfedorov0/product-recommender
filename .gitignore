@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.ipynb_checkpoints/
+
+# ignore other csvs (scratch/test data) but keep the dataset the app needs -
+# Render deploys straight from git, so it has to ship with the repo
+*.csv
+!flipkart_com-ecommerce_sample.csv

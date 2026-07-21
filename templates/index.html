@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Search &middot; Product Recommender{% endblock %}
+{% block content %}
+
+<section class="search-block">
+  <form action="/" method="get" class="search-form">
+    <input
+      type="text" name="q" value="{{ query }}"
+      placeholder="search a product, e.g. kurti, t-shirt, cufflink..."
+      autofocus
+    >
+    <button type="submit">search</button>
+  </form>
+  <p class="hint">
+    {% if query %}
+      showing matches for "<strong>{{ query }}</strong>"
+    {% else %}
+      showing a random sample &mdash; search or click a product to see its recommendations
+    {% endif %}
+  </p>
+</section>
+
+<section class="grid">
+  {% for p in results %}
+  <a class="card" href="/product/{{ p.product_id }}">
+    <span class="card-category">{{ p.category }}</span>
+    <span class="card-name">{{ p.product_name }}</span>
+    {% if p.brand and p.brand == p.brand %}<span class="card-brand">{{ p.brand }}</span>{% endif %}
+  </a>
+  {% else %}
+  <p class="empty">no products match that search</p>
+  {% endfor %}
+</section>
+
+{% endblock %}

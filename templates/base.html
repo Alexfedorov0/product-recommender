@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Product Recommender{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="/">
+    <span class="brand-mark">&gt;_</span> product recommender
+  </a>
+  <span class="brand-sub">TF-IDF &middot; cosine similarity &middot; {{ product_count }} products</span>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer class="site-footer">
+  content-based filtering, no user data involved &middot;
+  <a href="https://github.com/Alexfedorov0/product-recommender" target="_blank" rel="noopener">source</a>
+</footer>
+</body>
+</html>
