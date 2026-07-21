@@ -5,7 +5,7 @@ No user data, no purchase history, no ratings - just "does this product read lik
 that product". This is the simplest recommender approach that exists, and it's a
 useful baseline to understand before reaching for anything collaborative.
 
-**Live demo:** [product-recommender.onrender.com](https://product-recommender.onrender.com) *(free tier - first load can take ~30s to wake up)*
+**Live demo:** [product-recommender.onrender.com](https://product-recommender-nhvm.onrender.com) *(free tier - first load can take ~30s to wake up)*
 
 ## The business question
 
