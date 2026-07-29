@@ -1,61 +1,70 @@
-# Content-Based Product Recommender
+[EN](README.en.md) | RU
 
-Given a product, recommend similar products based only on their text descriptions.
-No user data, no purchase history, no ratings - just "does this product read like
-that product". This is the simplest recommender approach that exists, and it's a
-useful baseline to understand before reaching for anything collaborative.
+# Контентный рекомендатель товаров
 
-**Live demo:** [product-recommender.onrender.com](https://product-recommender-nhvm.onrender.com) *(free tier - first load can take ~30s to wake up)*
+Дан товар - рекомендуем похожие, опираясь только на текстовое описание.
+Никаких данных о пользователях, истории покупок или оценок - только
+"похож ли этот товар по тексту на тот товар". Это самый простой из всех
+рекомендательных подходов, и полезная база для понимания, прежде чем
+переходить к коллаборативной фильтрации.
 
-## The business question
+**Живая демка:** [product-recommender.onrender.com](https://product-recommender-nhvm.onrender.com)
+*(бесплатный тариф - первая загрузка может занять секунд 30)*
 
-If a shopper is looking at a product page, what else should we show them in a
-"similar items" block when we have no browsing or purchase history for that user
-(a new visitor, or a store that just launched)? Content-based filtering answers
-this using only the product catalog itself - it works from day one, unlike
-collaborative filtering, which needs interaction data to bootstrap.
+## Бизнес-вопрос
 
-## Data
+Если покупатель смотрит страницу товара, что показать ему в блоке "похожие
+товары", когда по этому конкретному пользователю вообще нет истории
+просмотров или покупок - новый посетитель или магазин, который только что
+запустился? Контентная фильтрация отвечает на этот вопрос, опираясь только
+на сам каталог товаров - работает с первого дня, в отличие от
+коллаборативной фильтрации, которой нужны накопленные данные о
+взаимодействиях, чтобы вообще начать работать.
+
+## Данные
 
 [Flipkart E-commerce Dataset](https://www.kaggle.com/datasets/atharvjairath/flipkart-ecommerce-dataset)
-from Kaggle - ~20,000 product listings crawled from Flipkart.com in 2016.
+с Kaggle - около 20 000 карточек товаров, собранных с Flipkart.com в 2016 году.
 
-After cleaning: **13,935 products** across 35+ categories (clothing, jewellery,
-footwear, electronics, home goods, automotive parts, and more).
+После очистки - **13 935 товаров** в 35+ категориях (одежда, украшения,
+обувь, электроника, товары для дома, автозапчасти и другое).
 
-Cleaning removed ~6,000 rows, mostly ones where the description was pure
-marketing boilerplate ("Buy X only for Rs. Y from Flipkart.com...") with almost
-nothing product-specific left over once that's stripped out - too thin to
-vectorize meaningfully.
+Очистка убрала около 6000 строк - в основном там, где описание было чистым
+рекламным текстом ("Buy X only for Rs. Y from Flipkart.com...") и почти
+ничего не оставалось по делу после его вырезания - слишком тонко для
+осмысленной векторизации.
 
-## Approach
+## Подход
 
-1. Strip boilerplate sales copy and section labels from descriptions (regex-based -
-   see `product_catalog.py`). This step matters more than it sounds: left in, generic
-   phrases like "genuine products" and "cash on delivery" appear in nearly every
-   listing and would swamp the actual product signal.
-2. Vectorize descriptions with TF-IDF (unigrams + bigrams, plus a custom stopword
-   list on top of the standard English one, since e-commerce boilerplate words
-   like "buy" and "flipkart" aren't in any standard stopword list).
-3. For a query product, rank every other product by cosine similarity to its
-   TF-IDF vector and return the top N.
+1. Вырезать рекламный текст и служебные подписи разделов из описаний
+   (регулярки, см. `product_catalog.py`). Этот шаг важнее, чем кажется на
+   первый взгляд - общие фразы вроде "genuine products" и "cash on delivery"
+   встречаются почти в каждой карточке и забивают собой реальный сигнал о
+   товаре, если их не убрать.
+2. Векторизовать описания через TF-IDF (униграммы и биграммы, плюс
+   собственный список стоп-слов поверх стандартного английского - слова
+   вроде "buy" и "flipkart", характерные для e-commerce текста, в
+   стандартный список стоп-слов не входят).
+3. Для товара-запроса ранжировать все остальные товары по косинусному
+   сходству их TF-IDF векторов и вернуть топ N.
 
-Similarity is computed against one row at a time rather than building a full
-NxN similarity matrix - at this catalog size that matrix would be roughly 1.5GB
-of floats for no benefit, since only one row is ever needed per recommendation.
+Сходство считается для одной строки за раз, а не через полную матрицу
+NxN - при таком размере каталога такая матрица весила бы примерно 1.5 ГБ
+чисел с плавающей точкой без всякой пользы, потому что за один запрос
+реально нужна только одна строка.
 
-## Results
+## Результаты
 
-**Works as expected for near-duplicate and closely related listings:**
+**Работает как ожидается для почти-дубликатов и близких товаров:**
 
 ```
 QUERY [Clothing]: Oviyon Printed Men's Round Neck T-Shirt
-  0.925  Oviyon Printed Men's Round Neck T-Shirt (color variant)
-  0.890  Oviyon Printed Men's Round Neck T-Shirt (color variant)
+  0.925  Oviyon Printed Men's Round Neck T-Shirt (другой цвет)
+  0.890  Oviyon Printed Men's Round Neck T-Shirt (другой цвет)
   0.839  Oviyon Printed Men's V-neck T-Shirt
 ```
 
-**Reasonable generalization within a category:**
+**Разумное обобщение внутри категории:**
 
 ```
 QUERY [Clothing]: Govind Chikan Formal Solid Women's Kurti
@@ -64,58 +73,63 @@ QUERY [Clothing]: Govind Chikan Formal Solid Women's Kurti
   0.451  Flora Solid Women's Kurti
 ```
 
-**A genuine limitation, not a cherry-picked failure:**
+**Настоящее ограничение, не подобранный специально провал:**
 
 ```
 QUERY [Clothing]: Gypsy Soul Casual Short Sleeve Polka Print Women's Top
   0.311  [Tools & Hardware] Super Drool Polka Dot Plant Container Set
 ```
 
-A women's top gets matched to a plant pot. Checking which terms drove this
-(`recommender.explain()`) shows both listings score highest on "polka dot" and
-"dot" - TF-IDF has no idea that "polka dot" describes a fabric pattern in one
-listing and literally nothing about the object in the other. It just sees two
-documents that share a distinctive two-word phrase. This is the core limitation
-of bag-of-words methods: they match vocabulary, not meaning. An embedding-based
-approach (e.g. sentence-transformers) would likely handle this correctly, since
-it captures semantic context rather than surface tokens - a natural next step
-if this were pushed further.
+Женский топ сматчился с горшком для растений. Проверка через
+`recommender.explain()` какие именно слова дали такой скор показывает, что
+оба товара набрали больше всего очков на "polka dot" и "dot" - TF-IDF
+понятия не имеет, что "polka dot" в одном описании - это рисунок ткани, а
+во втором вообще ничего общего с объектом не имеет. Модель просто видит два
+документа с общей характерной двухсловной фразой. Это и есть главное
+ограничение методов bag-of-words - они сопоставляют слова, а не смысл.
+Эмбеддинг-модели (например sentence-transformers) скорее всего справились
+бы с этим случаем правильно, потому что улавливают смысловой контекст, а
+не поверхностные токены - логичный следующий шаг, если развивать проект
+дальше.
 
-## Limitations
+## Ограничения
 
-- **No personalization.** Every user gets the same recommendations for a given
-  product - there's no notion of user preference at all.
-- **Cold start works, but so does the opposite problem**: a product with a thin
-  or generic description gets weak recommendations no matter how good the
-  underlying model is - the method is only as good as the text it's given.
-- **Bag-of-words has no semantics**, as shown above. Synonyms, misspellings, and
-  coincidental phrase overlap are all treated the same way.
-- **Categories aren't used to correct the model** - they're only used here to
-  sanity-check results, not fed into the similarity calculation itself. Blending
-  in category as a feature would likely fix cases like the polka dot mismatch.
+- **Нет персонализации.** Каждый пользователь получает одни и те же
+  рекомендации для конкретного товара - никакого понятия о предпочтениях
+  пользователя тут вообще нет.
+- **Холодный старт решён, но есть обратная проблема** - товар с тонким или
+  общим описанием получает слабые рекомендации, каким бы хорошим ни была
+  сама модель, метод настолько хорош, насколько хорош переданный ему текст.
+- **У bag-of-words нет понимания смысла**, как показано выше. Синонимы,
+  опечатки и случайное совпадение фраз обрабатываются одинаково.
+- **Категории не используются для коррекции модели** - здесь они нужны
+  только чтобы проверить результат на здравый смысл, а не участвуют в самом
+  расчёте сходства. Добавление категории как признака вероятно исправило бы
+  случаи вроде путаницы с горошком на ткани.
 
-## Running it
+## Запуск
 
 ```bash
 pip install -r requirements.txt
-python demo.py                  # prints example recommendations in the terminal
-pytest test_recommender.py -v   # test suite
-uvicorn app:app --reload        # web demo at http://localhost:8000
+python demo.py                  # печатает примеры рекомендаций в терминал
+pytest test_recommender.py -v   # тесты
+uvicorn app:app --reload        # веб-демка на http://localhost:8000
 ```
 
-Requires `flipkart_com-ecommerce_sample.csv` (from the Kaggle link above) in
-the project root.
+В корне проекта нужен файл `flipkart_com-ecommerce_sample.csv` (ссылка на
+Kaggle выше).
 
-## Web app
+## Веб-приложение
 
-`app.py` wraps the recommender in a small FastAPI app: search a product,
-open its page, see the top-8 recommendations ranked by similarity. The
-catalog is loaded and the TF-IDF model fit once at startup (a few seconds),
-not per request.
+`app.py` оборачивает рекомендатель в небольшое FastAPI-приложение - ищешь
+товар, открываешь его страницу, видишь топ-8 рекомендаций, отсортированных
+по сходству. Каталог загружается и TF-IDF модель обучается один раз при
+старте (пара секунд), а не при каждом запросе.
 
-- `/` - search / browse
-- `/product/{product_id}` - a product and its recommendations
-- `/api/recommend/{product_id}?top_n=5` - same thing as JSON
+- `/` - поиск / просмотр каталога
+- `/product/{product_id}` - товар и рекомендации к нему
+- `/api/recommend/{product_id}?top_n=5` - то же самое, но в формате JSON
 
-Deployed on Render's free tier - build command `pip install -r requirements.txt`,
-start command `uvicorn app:app --host 0.0.0.0 --port $PORT` (see `Procfile`).
+Задеплоено на бесплатном тарифе Render - build command
+`pip install -r requirements.txt`, start command
+`uvicorn app:app --host 0.0.0.0 --port $PORT` (см. `Procfile`).

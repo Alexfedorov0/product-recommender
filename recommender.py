@@ -1,18 +1,18 @@
-"""Content-based product recommender.
+"""Контентный рекомендатель товаров.
 
-Represents each product description as a TF-IDF vector and recommends
-the products whose vectors are closest by cosine similarity. No user
-data, no ratings - purely "this product reads like that product".
+Представляет каждое описание товара как TF-IDF вектор и рекомендует
+товары, чьи векторы ближе всего по косинусному сходству. Никаких данных о
+пользователях, никаких оценок - просто "это описание похоже на то".
 """
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
 
-# Generic English stopwords aren't enough here - Flipkart listings share a
-# handful of boilerplate/marketing words across almost every category
-# ("buy", "online", "genuine", "shop") that would otherwise show up as
-# meaningful overlap between unrelated products.
+# Обычных английских стоп-слов тут недостаточно - карточки Flipkart делят
+# между собой набор рекламных/маркетинговых слов почти в каждой категории
+# ("buy", "online", "genuine", "shop"), которые иначе выглядели бы как
+# значимое совпадение между никак не связанными товарами.
 EXTRA_STOPWORDS = [
     "buy", "online", "genuine", "shop", "shopping", "india", "rs",
     "flipkart", "com", "branded", "best", "huge", "collection",
@@ -31,8 +31,8 @@ class ContentBasedRecommender:
         descriptions = self.products["description"].tolist()
         self.vectorizer = TfidfVectorizer(
             stop_words=self._build_stopword_list(),
-            max_df=0.6,        # drop terms that show up in >60% of listings - too generic to help
-            min_df=2,          # drop typos/one-off tokens that only appear once
+            max_df=0.6,        # выбросить термины, встречающиеся в >60% карточек - слишком общие, не помогают
+            min_df=2,          # выбросить опечатки/разовые токены, встретившиеся только один раз
             ngram_range=(1, 2),
         )
         self.tfidf_matrix = self.vectorizer.fit_transform(descriptions)
@@ -49,12 +49,12 @@ class ContentBasedRecommender:
         idx = idx[0]
 
         query_vector = self.tfidf_matrix[idx]
-        # cosine similarity between one row and the whole matrix - avoids
-        # ever materializing the full NxN similarity matrix, which would be
-        # ~1.5GB of floats at this catalog size.
+        # косинусное сходство одной строки со всей матрицей - позволяет не
+        # строить полную матрицу сходства NxN, которая при таком размере
+        # каталога весила бы примерно 1.5 ГБ чисел с плавающей точкой.
         scores = linear_kernel(query_vector, self.tfidf_matrix).flatten()
 
-        # exclude the query product itself before taking the top results
+        # исключаем сам товар-запрос перед тем как брать топ результатов
         scores[idx] = -1
         top_indices = scores.argsort()[::-1][:top_n]
 
@@ -63,9 +63,9 @@ class ContentBasedRecommender:
         return results.reset_index(drop=True)
 
     def explain(self, product_id, top_n=8):
-        """Returns the highest-weighted TF-IDF terms for a product - useful
-        for understanding *why* the model thinks two products are similar
-        (or isn't finding what you'd expect)."""
+        """Возвращает термины с наибольшим TF-IDF весом для товара - полезно
+        чтобы понять *почему* модель считает два товара похожими (или
+        не находит то, что ожидалось)."""
         idx = self.products.index[self.products["product_id"] == product_id][0]
         row = self.tfidf_matrix[idx].toarray().flatten()
         feature_names = self.vectorizer.get_feature_names_out()

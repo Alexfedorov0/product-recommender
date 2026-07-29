@@ -1,18 +1,19 @@
-"""Loads and cleans the Flipkart product catalog used by the recommender.
+"""Загружает и чистит каталог товаров Flipkart для рекомендателя.
 
-Data source: Flipkart E-commerce Dataset (Kaggle, ~20k products crawled
-in 2016). https://www.kaggle.com/datasets/atharvjairath/flipkart-ecommerce-dataset
+Источник данных: Flipkart E-commerce Dataset (Kaggle, ~20k товаров,
+собрано в 2016). https://www.kaggle.com/datasets/atharvjairath/flipkart-ecommerce-dataset
 """
 
 import re
 import pandas as pd
 
 
-# Flipkart descriptions are full of boilerplate sales copy that has nothing
-# to do with the actual product ("Buy X only for Rs. Y from Flipkart.com.
-# Only Genuine Products. 30 Day Replacement Guarantee..."). Left in, this
-# text dominates the TF-IDF vectors with generic words instead of anything
-# that distinguishes one product from another, so it gets stripped first.
+# Обычных английских стоп-слов тут недостаточно - описания на Flipkart
+# набиты рекламным текстом ("Buy X only for Rs. Y from Flipkart.com.
+# Only Genuine Products. 30 Day Replacement Guarantee..."), который не имеет
+# отношения к самому товару. Если оставить как есть, этот текст забивает
+# TF-IDF-векторы общими словами вместо того, что реально отличает один
+# товар от другого, поэтому вырезаем его первым делом.
 BOILERPLATE_PATTERNS = [
     r"Flipkart\.com:?\s*",
     r"Flipkart has\b",
@@ -28,8 +29,8 @@ BOILERPLATE_PATTERNS = [
 ]
 BOILERPLATE_RE = re.compile("|".join(BOILERPLATE_PATTERNS), flags=re.IGNORECASE)
 
-# "Key Features of X" / "Specifications of X" are section labels, not
-# content. The product name inside them is redundant with product_name.
+# "Key Features of X" / "Specifications of X" - это подписи разделов, а не
+# содержание. Название товара внутри них дублирует product_name.
 SECTION_LABEL_RE = re.compile(
     r"(Key Features of|Specifications of)\s+.*?(?=\s[A-Z]|$)", flags=re.IGNORECASE
 )
@@ -47,12 +48,12 @@ def clean_description(text):
 
 
 def extract_top_category(category_tree):
-    """product_category_tree looks like '["Clothing >> Women's ... "]'.
+    """product_category_tree выглядит как '["Clothing >> Women's ... "]'.
 
-    A small number of rows have no real hierarchy in there at all - just
-    the product name again, with no '>>' separator - which would otherwise
-    get parsed as if it were the category. Those get labeled Unknown
-    instead of showing garbled product text as a "category".
+    У небольшого числа строк там вообще нет настоящей иерархии - просто
+    повторено название товара, без разделителя '>>', который иначе бы
+    распарсился как категория. Такие строки помечаются как Unknown, чтобы
+    не показывать обрывок текста товара в качестве "категории".
     """
     if not isinstance(category_tree, str):
         return "Unknown"
@@ -66,7 +67,7 @@ def extract_top_category(category_tree):
 
 
 class ProductCatalog:
-    """Holds the cleaned product catalog as a DataFrame."""
+    """Хранит очищенный каталог товаров в виде DataFrame."""
 
     def __init__(self, csv_path, min_description_length=40):
         self.csv_path = csv_path
@@ -80,9 +81,9 @@ class ProductCatalog:
         df["description_clean"] = df["description"].apply(clean_description)
         df["category"] = df["product_category_tree"].apply(extract_top_category)
 
-        # A handful of rows end up with almost nothing left after cleaning
-        # (descriptions that were pure boilerplate) - drop those rather than
-        # feeding near-empty text into the vectorizer.
+        # У небольшого числа строк после очистки почти ничего не остаётся
+        # (описания были чистым рекламным текстом) - такие строки лучше
+        # выбросить, чем отдавать в векторизатор почти пустой текст.
         df = df[df["description_clean"].str.len() >= self.min_description_length]
 
         df = df.drop_duplicates(subset=["product_name", "description_clean"])

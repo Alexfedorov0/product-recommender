@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block title %}{{ product.product_name }} &middot; Product Recommender{% endblock %}
+{% block title %}{{ product.product_name }} &middot; Рекомендатель товаров{% endblock %}
 {% block content %}
 
-<a class="back-link" href="/">&larr; back to search</a>
+<a class="back-link" href="/">&larr; назад к поиску</a>
 
 <section class="query-product">
-  <span class="eyebrow">query product</span>
+  <span class="eyebrow">товар-запрос</span>
   <h1>{{ product.product_name }}</h1>
   <span class="query-category">{{ product.category }}</span>
   <p class="query-description">{{ product.description[:320] }}{% if product.description|length > 320 %}&hellip;{% endif %}</p>
 </section>
 
 <section>
-  <h2 class="section-title">recommended &middot; ranked by cosine similarity</h2>
+  <h2 class="section-title">рекомендации &middot; отсортированы по косинусному сходству</h2>
   <div class="rec-list">
     {% for r in recommendations %}
     <a class="rec-row" href="/product/{{ r.product_id }}">

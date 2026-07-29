@@ -1,7 +1,7 @@
-"""Web demo for the content-based recommender.
+"""Веб-демка контентного рекомендателя.
 
-Loads the catalog and fits the TF-IDF model once at startup, then serves
-a small search UI plus a JSON endpoint for the recommendations themselves.
+Загружает каталог и обучает TF-IDF модель один раз при старте, дальше
+отдаёт небольшой поисковый интерфейс плюс JSON-эндпоинт с рекомендациями.
 """
 
 from pathlib import Path

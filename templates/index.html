@@ -1,21 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Search &middot; Product Recommender{% endblock %}
+{% block title %}Поиск &middot; Рекомендатель товаров{% endblock %}
 {% block content %}
 
 <section class="search-block">
   <form action="/" method="get" class="search-form">
     <input
       type="text" name="q" value="{{ query }}"
-      placeholder="search a product, e.g. kurti, t-shirt, cufflink..."
+      placeholder="найти товар, например kurti, t-shirt, cufflink..."
       autofocus
     >
-    <button type="submit">search</button>
+    <button type="submit">найти</button>
   </form>
   <p class="hint">
     {% if query %}
-      showing matches for "<strong>{{ query }}</strong>"
+      результаты по запросу "<strong>{{ query }}</strong>"
     {% else %}
-      showing a random sample &mdash; search or click a product to see its recommendations
+      показана случайная выборка &mdash; введите запрос или откройте товар, чтобы увидеть рекомендации
     {% endif %}
   </p>
 </section>
@@ -28,7 +28,7 @@
     {% if p.brand and p.brand == p.brand %}<span class="card-brand">{{ p.brand }}</span>{% endif %}
   </a>
   {% else %}
-  <p class="empty">no products match that search</p>
+  <p class="empty">по этому запросу ничего не нашлось</p>
   {% endfor %}
 </section>
 
